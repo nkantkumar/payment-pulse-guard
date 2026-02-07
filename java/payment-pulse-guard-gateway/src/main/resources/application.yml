@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: payment-pulse-guard-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: transaction-service
+          uri: lb://transaction-service
+          predicates:
+            - Path=/api/transactions/**
+        - id: customer-service
+          uri: lb://customer-service
+          predicates:
+            - Path=/api/customers/**
+        - id: alert-service
+          uri: lb://alert-service
+          predicates:
+            - Path=/api/alerts/**
+        - id: case-service
+          uri: lb://case-service
+          predicates:
+            - Path=/api/cases/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

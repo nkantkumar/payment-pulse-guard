@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.1</version>
+        <relativePath/>
+        <scope>import</scope>
+    </parent>
+
+    <groupId>io.github.payment-pulse-guard</groupId>
+    <artifactId>payment-pulse-guard-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Payment Pulse Guard - Parent</name>
+    <description>Fraud and AML detection system - Java services</description>
+
+    <properties>
+        <java.version>24</java.version>
+        <kafka.version>3.7.0</kafka.version>
+        <drools.version>8.44.0.Final</drools.version>
+        <spring-cloud.version>2024.0.0</spring-cloud.version>
+    </properties>
+
+    <modules>
+        <module>payment-pulse-guard-api</module>
+        <module>payment-pulse-guard-gateway</module>
+        <module>payment-pulse-guard-transaction-service</module>
+        <module>payment-pulse-guard-customer-service</module>
+        <module>payment-pulse-guard-rules-engine</module>
+        <module>payment-pulse-guard-alert-service</module>
+        <module>payment-pulse-guard-case-service</module>
+        <module>payment-pulse-guard-enrichment-service</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.github.payment-pulse-guard</groupId>
+                <artifactId>payment-pulse-guard-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

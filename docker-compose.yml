@@ -1,0 +1,116 @@
+# Payment Pulse Guard - Local development and integration testing
+# Java 24 services, Python ML service, Kafka, PostgreSQL, Redis, Elasticsearch
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: fraudaml
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d fraudaml"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ml-scoring-service:
+    build:
+      context: ./python/ml-scoring-service
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_PATH: /app/models
+    volumes:
+      - ./python/ml-scoring-service/models:/app/models:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - full
+
+  # Optional: run Java services via Docker (use "docker compose --profile full up")
+  # transaction-service:
+  #   build: ./java
+  #   dockerfile: payment-pulse-guard-transaction-service/Dockerfile
+  #   ports: ["8081:8081"]
+  #   environment:
+  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  #     POSTGRES_URL: jdbc:postgresql://postgres:5432/fraudaml
+  #     POSTGRES_USER: admin
+  #     POSTGRES_PASSWORD: password
+  #     ML_SERVICE_URL: http://ml-scoring-service:8000
+  #   depends_on:
+  #     kafka: { condition: service_healthy }
+  #     postgres: { condition: service_healthy }
+  #     ml-scoring-service: { condition: service_healthy }
+  #   profiles: [full]
+
+volumes:
+  postgres-data:
+  elasticsearch-data:

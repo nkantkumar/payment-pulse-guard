@@ -1,0 +1,41 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: transaction-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: fraud-detection
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: io.github.paymentpulseguard.domain.Transaction
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/fraudaml}
+    username: ${POSTGRES_USER:admin}
+    password: ${POSTGRES_PASSWORD:password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+app:
+  kafka:
+    topics:
+      transactions: transactions
+      alerts: alerts
+  ml-service:
+    url: ${ML_SERVICE_URL:http://localhost:8000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

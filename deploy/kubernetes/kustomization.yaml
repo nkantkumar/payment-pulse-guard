@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: payment-pulse-guard
+resources:
+  - base/namespace.yaml
+  - base/configmap.yaml
+  - base/ml-scoring-service.yaml
+  - base/transaction-service.yaml
+# Add overlays for env-specific (dev/staging/prod) and replace image tags
+# images:
+#   - name: payment-pulse-guard/ml-scoring-service
+#     newTag: 0.1.0
+#   - name: payment-pulse-guard/transaction-service
+#     newTag: 0.1.0

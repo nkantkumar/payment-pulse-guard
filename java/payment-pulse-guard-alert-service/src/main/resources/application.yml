@@ -1,0 +1,18 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: alert-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/fraudaml}
+    username: ${POSTGRES_USER:admin}
+    password: ${POSTGRES_PASSWORD:password}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
