@@ -18,7 +18,7 @@ public class RuleResult {
     }
 
     public boolean hasViolation(String ruleCode) {
-        return violations.stream().anyMatch(v -> ruleCode.equals(v.getRuleCode()));
+        return violations.stream().anyMatch(v -> ruleCode.equals(v.ruleCode()));
     }
 
     public record Violation(String ruleCode, String message) {}
