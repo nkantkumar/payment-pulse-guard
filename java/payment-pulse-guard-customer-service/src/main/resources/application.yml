@@ -6,7 +6,7 @@ spring:
     name: customer-service
   datasource:
     url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/fraudaml}
-    username: ${POSTGRES_USER:admin}
+    username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:password}
   data:
     redis:

@@ -17,12 +17,13 @@ How to run Payment Pulse Guard locally, on Kubernetes, and on Google Cloud Run.
    docker compose up -d
    ```
 
-2. **Apply database schema**:
+2. **Apply database schema** (run from repo root; uses PostgreSQL inside Docker so the `admin` user exists):
 
    ```bash
-   psql -h localhost -U admin -d fraudaml -f database/migrations/V001__initial_schema.sql
-   # Password: password (or set POSTGRES_PASSWORD in docker-compose)
+   docker compose exec -T postgres psql -U admin -d fraudaml < database/migrations/V001__initial_schema.sql
    ```
+
+   If you use a local `psql` client instead, ensure it connects to the Docker Postgres (port 5432). A local PostgreSQL on your machine often has no `admin` role, which causes "role \"admin\" does not exist".
 
 3. **Run ML Scoring Service** (Python):
 

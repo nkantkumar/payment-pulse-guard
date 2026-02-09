@@ -4,8 +4,11 @@ Uses stub scores when models are not present (e.g. in CI or first run).
 """
 from pathlib import Path
 from typing import Any
+import logging
 
 from app.schemas import MLScore, Transaction
+
+logger = logging.getLogger(__name__)
 
 # Module-level model refs (set by load_models)
 _fraud_model = None
@@ -18,13 +21,61 @@ FEATURE_NAMES = [
 ]
 
 
+def _create_dummy_models(model_dir: Path) -> None:
+    """Create and save dummy models if they don't exist."""
+    try:
+        import joblib
+        import numpy as np
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.preprocessing import StandardScaler
+
+        logger.info("Creating dummy models in %s...", model_dir)
+        model_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create dummy data
+        X = np.random.rand(100, 14)  # 14 features as per extract_features
+        y = np.random.randint(0, 2, 100)
+
+        # Train dummy models
+        fraud_model = RandomForestClassifier(n_estimators=10, random_state=42)
+        fraud_model.fit(X, y)
+
+        aml_model = RandomForestClassifier(n_estimators=10, random_state=42)
+        aml_model.fit(X, y)
+
+        scaler = StandardScaler()
+        scaler.fit(X)
+
+        # Save models
+        joblib.dump(fraud_model, model_dir / "fraud_detector_v1.pkl")
+        joblib.dump(aml_model, model_dir / "aml_detector_v1.pkl")
+        joblib.dump(scaler, model_dir / "scaler.pkl")
+        logger.info("Dummy models created successfully.")
+
+    except Exception as e:
+        logger.error("Failed to create dummy models: %s", e)
+        # Don't re-raise, let load_models fail naturally or use stubs
+
+
 def load_models(model_dir: Path) -> None:
-    """Load joblib models from directory. Raises if files missing."""
+    """Load joblib models from directory. Creates dummy models if missing."""
     import joblib
     global _fraud_model, _aml_model, _scaler
-    _fraud_model = joblib.load(model_dir / "fraud_detector_v1.pkl")
-    _aml_model = joblib.load(model_dir / "aml_detector_v1.pkl")
-    _scaler = joblib.load(model_dir / "scaler.pkl")
+
+    fraud_path = model_dir / "fraud_detector_v1.pkl"
+    aml_path = model_dir / "aml_detector_v1.pkl"
+    scaler_path = model_dir / "scaler.pkl"
+
+    if not (fraud_path.exists() and aml_path.exists() and scaler_path.exists()):
+        _create_dummy_models(model_dir)
+
+    try:
+        _fraud_model = joblib.load(fraud_path)
+        _aml_model = joblib.load(aml_path)
+        _scaler = joblib.load(scaler_path)
+    except FileNotFoundError:
+        # If creation failed or files still missing, let caller handle it (main.py logs warning)
+        raise
 
 
 def extract_features(tx: Transaction) -> list[float]:
