@@ -37,6 +37,8 @@ How to run Payment Pulse Guard locally, on Kubernetes, and on Google Cloud Run.
    cd java && mvn -q clean install -DskipTests
    # Run each service (e.g. transaction-service on 8081, gateway on 8080)
    java -jar payment-pulse-guard-transaction-service/target/payment-pulse-guard-transaction-service-*.jar
+   
+   java -jar payment-pulse-guard-gateway/target/payment-pulse-guard-gateway-*.jar
    ```
 
    Or run from your IDE: `TransactionServiceApplication`, `GatewayApplication`, etc.
