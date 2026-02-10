@@ -52,12 +52,38 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Fix for Netty DNS warning on macOS (Apple Silicon) -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <classifier>osx-aarch_64</classifier>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Fix for Netty DNS warning on macOS (Intel) -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <classifier>osx-x86_64</classifier>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
         </plugins>
     </build>

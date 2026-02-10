@@ -32,6 +32,7 @@ public class AlertService {
                 .assignedTo(alert.getAssignedTo())
                 .build();
         kafkaTemplate.send(alertsTopic, withId.getId(), withId);
+        log.info("Alert published: {}", withId);
         log.info("Alert published: {} - Severity: {}, Score: {}", withId.getId(), withId.getSeverity(), withId.getRiskScore());
     }
 }

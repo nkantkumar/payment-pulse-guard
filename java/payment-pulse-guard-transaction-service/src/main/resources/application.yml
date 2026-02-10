@@ -21,7 +21,9 @@ spring:
     url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/fraudaml}
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
     show-sql: false

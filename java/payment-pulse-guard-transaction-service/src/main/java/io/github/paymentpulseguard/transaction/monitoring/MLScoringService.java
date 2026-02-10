@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.util.concurrent.CompletableFuture;
 
@@ -53,6 +55,15 @@ public class MLScoringService {
                 ? profile.getRiskScore().doubleValue() : 0d;
         int ageDays = profile != null ? profile.getAgeDays() : 0;
         String country = tx.getLocation() != null ? tx.getLocation().getCountry() : "";
+
+        int hour = 0;
+        int day = 0;
+        if (tx.getTimestamp() != null) {
+            ZonedDateTime zdt = tx.getTimestamp().atZone(ZoneId.of("UTC"));
+            hour = zdt.get(ChronoField.HOUR_OF_DAY);
+            day = zdt.get(ChronoField.DAY_OF_WEEK);
+        }
+
         return MLTransactionRequest.builder()
                 .id(tx.getId())
                 .amount(tx.getAmount() != null ? tx.getAmount().doubleValue() : 0)
@@ -60,8 +71,8 @@ public class MLScoringService {
                 .transactionType(tx.getType() != null ? tx.getType().name() : "UNKNOWN")
                 .channel(tx.getChannel() != null ? tx.getChannel() : "")
                 .beneficiaryCountry(tx.getBeneficiaryCountry() != null ? tx.getBeneficiaryCountry() : "")
-                .hourOfDay(tx.getTimestamp() != null ? tx.getTimestamp().get(ChronoField.HOUR_OF_DAY) : 0)
-                .dayOfWeek(tx.getTimestamp() != null ? tx.getTimestamp().get(ChronoField.DAY_OF_WEEK) : 0)
+                .hourOfDay(hour)
+                .dayOfWeek(day)
                 .customerAgeDays(ageDays)
                 .avgTransactionAmount30d(avg30d)
                 .transactionCount24h(count24h)

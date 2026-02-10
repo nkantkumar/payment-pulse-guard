@@ -25,7 +25,7 @@ public class TransactionMonitoringService {
     private final AlertService alertService;
     private final EnrichmentService enrichmentService;
 
-    private static final double ALERT_THRESHOLD = 0.7;
+    private static final double ALERT_THRESHOLD = 0.3;
 
     @KafkaListener(topics = "${app.kafka.topics.transactions:transactions}", groupId = "fraud-detection")
     public void processTransaction(Transaction transaction) {
@@ -39,6 +39,8 @@ public class TransactionMonitoringService {
             if (shouldGenerateAlert(ruleResult, score)) {
                 Alert alert = createAlert(enriched, ruleResult, score);
                 alertService.publish(alert);
+            }else{
+                log.info(" processing transaction: not alerting, score {}", score.getCombinedScore());
             }
         } catch (Exception e) {
             log.error("Error processing transaction: {}", transaction.getId(), e);
