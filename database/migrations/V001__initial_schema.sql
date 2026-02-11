@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     beneficiary_id VARCHAR(50),
     beneficiary_name VARCHAR(200),
     beneficiary_country VARCHAR(2),
-    ip_address INET,
+    ip_address VARCHAR(45),
     device_id VARCHAR(100),
     merchant_category VARCHAR(50),
     timestamp TIMESTAMP NOT NULL,
