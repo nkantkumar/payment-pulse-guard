@@ -14,12 +14,18 @@ public class DroolsRulesService {
     private final KieContainer kieContainer;
 
     public RuleResult evaluate(EnrichedTransaction transaction) {
-        KieSession kieSession = kieContainer.newKieSession();
+        KieSession kieSession = null;
         RuleResult result = new RuleResult();
-        kieSession.setGlobal("result", result);
-        kieSession.insert(transaction);
-        kieSession.fireAllRules();
-        kieSession.dispose();
+        try {
+            kieSession = kieContainer.newKieSession("rulesKSession");
+            kieSession.setGlobal("result", result);
+            kieSession.insert(transaction);
+            kieSession.fireAllRules();
+        } finally {
+            if (kieSession != null) {
+                kieSession.dispose();
+            }
+        }
         return result;
     }
 }

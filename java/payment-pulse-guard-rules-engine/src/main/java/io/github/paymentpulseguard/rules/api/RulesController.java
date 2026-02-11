@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/evaluate")
 @RequiredArgsConstructor
 public class RulesController {
-
     private final DroolsRulesService droolsRulesService;
 
     @PostMapping
