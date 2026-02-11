@@ -48,13 +48,12 @@ How to run Payment Pulse Guard locally, on Kubernetes, and on Google Cloud Run.
    "amount": 1500.00,
    "currency": "USD",
    "type": "TRANSFER",
-   "customerId": "cust_12344",
+   "customerId": "cust_12345",
    "accountId": "acc_98765",
    "beneficiaryId": "ben_55555",
    "beneficiaryCountry": "US",
    "ipAddress": "192.168.1.100",
-   "channel": "ONLINE",
-   "timestamp": "2023-10-27T10:00:00Z"
+   "channel": "ONLINE"
    }
 -----------------------------------
 

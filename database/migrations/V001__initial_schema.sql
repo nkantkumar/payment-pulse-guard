@@ -23,6 +23,21 @@ CREATE INDEX IF NOT EXISTS idx_transactions_customer ON transactions (customer_i
 CREATE INDEX IF NOT EXISTS idx_transactions_timestamp ON transactions (timestamp);
 CREATE INDEX IF NOT EXISTS idx_transactions_amount ON transactions (amount);
 
+-- Outbox Events (Transactional Outbox Pattern)
+
+
+CREATE TABLE IF NOT EXISTS outbox_events (
+    id UUID PRIMARY KEY,
+    aggregate_type VARCHAR(50) NOT NULL,
+    aggregate_id VARCHAR(50) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    payload JSONB NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    processed_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_outbox_processed ON outbox_events (processed_at);
+
 -- Alerts
 CREATE TABLE IF NOT EXISTS alerts (
     id UUID PRIMARY KEY,

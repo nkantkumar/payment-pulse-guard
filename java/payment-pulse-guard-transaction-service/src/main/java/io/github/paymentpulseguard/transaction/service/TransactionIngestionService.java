@@ -1,12 +1,13 @@
 package io.github.paymentpulseguard.transaction.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.paymentpulseguard.domain.Transaction;
+import io.github.paymentpulseguard.transaction.domain.OutboxEvent;
 import io.github.paymentpulseguard.transaction.domain.TransactionEntity;
+import io.github.paymentpulseguard.transaction.repository.OutboxEventRepository;
 import io.github.paymentpulseguard.transaction.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +20,8 @@ import java.util.UUID;
 public class TransactionIngestionService {
 
     private final TransactionRepository transactionRepository;
-    private final KafkaTemplate<String, Transaction> kafkaTemplate;
-
-    @Value("${app.kafka.topics.transactions:transactions}")
-    private String transactionsTopic;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public Transaction processTransaction(Transaction transaction) {
@@ -36,23 +35,26 @@ public class TransactionIngestionService {
 
         log.info("Ingesting transaction: {}", transaction.getId());
 
-        // Save to Database
         try {
+            // 1. Save Transaction Entity
             TransactionEntity entity = mapToEntity(transaction);
             transactionRepository.save(entity);
-        } catch (Exception e) {
-            log.error("Failed to save transaction to DB: {}", transaction.getId(), e);
-            // We might want to throw an exception here to fail the request, 
-            // or continue if Kafka publishing is more important. 
-            // For now, we log and proceed to ensure the pipeline continues.
-        }
 
-        // Publish to Kafka
-        try {
-            kafkaTemplate.send(transactionsTopic, transaction.getId(), transaction);
+            // 2. Save Outbox Event (in the same transaction)
+            String payload = objectMapper.writeValueAsString(transaction);
+            OutboxEvent outboxEvent = OutboxEvent.builder()
+                    .id(UUID.randomUUID())
+                    .aggregateType("TRANSACTION")
+                    .aggregateId(transaction.getId())
+                    .type("TRANSACTION_CREATED")
+                    .payload(payload)
+                    .createdAt(Instant.now())
+                    .build();
+            outboxEventRepository.save(outboxEvent);
+
         } catch (Exception e) {
-            log.error("Failed to publish transaction to Kafka: {}", transaction.getId(), e);
-            throw new RuntimeException("Failed to publish transaction", e);
+            log.error("Failed to save transaction and outbox event: {}", transaction.getId(), e);
+            throw new RuntimeException("Failed to ingest transaction", e);
         }
 
         return transaction;
