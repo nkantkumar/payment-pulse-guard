@@ -3,33 +3,33 @@ package io.github.paymentpulseguard.transaction.monitoring;
 import io.github.paymentpulseguard.domain.EnrichedTransaction;
 import io.github.paymentpulseguard.domain.RuleResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * Evaluates Drools (or pluggable) rules against enriched transactions.
- * For initial scaffold we use a simple in-process evaluator; replace with KieSession when Drools is added.
+ * Now calls the remote payment-pulse-guard-rules-engine service.
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RulesEngineService {
 
-    private static final List<String> SANCTIONED = List.of("IR", "KP", "SY", "CU");
+    private final WebClient.Builder webClientBuilder;
+
+    @Value("${app.rules-engine.url:http://127.0.0.1:8086}")
+    private String rulesEngineServiceUrl;
 
     public RuleResult evaluate(EnrichedTransaction transaction) {
-        RuleResult result = new RuleResult();
-        if (transaction.getAmount() != null && transaction.getAmount().doubleValue() > 10_000) {
-            result.addViolation("HIGH_VALUE",
-                    "Transaction exceeds $10,000: " + transaction.getAmount());
-        }
-        if (transaction.getBeneficiaryCountry() != null) {
-            String c = transaction.getBeneficiaryCountry().toUpperCase();
-            if (SANCTIONED.contains(c)) {
-                result.addViolation("SANCTIONS",
-                        "Transaction to sanctioned country: " + transaction.getBeneficiaryCountry());
-            }
-        }
-        return result;
+        log.debug("Calling remote rules engine service for transaction: {}", transaction.getId());
+        return webClientBuilder.build()
+                .post()
+                .uri(rulesEngineServiceUrl + "/evaluate")
+                .bodyValue(transaction)
+                .retrieve()
+                .bodyToMono(RuleResult.class)
+                .block(); // Blocking here because the flow is synchronous
     }
 }

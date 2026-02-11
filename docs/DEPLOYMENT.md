@@ -41,6 +41,7 @@ How to run Payment Pulse Guard locally, on Kubernetes, and on Google Cloud Run.
    
    java -jar payment-pulse-guard-gateway/target/payment-pulse-guard-gateway-*.jar 
    java -jar payment-pulse-guard-enrichment-service/target/payment-pulse-guard-enrichment-service-*.jar 
+   java -jar payment-pulse-guard-rules-engine/target/payment-pulse-guard-rules-engine-*.jar
    java -jar payment-pulse-guard-transaction-service/target/payment-pulse-guard-transaction-service-*.jar 
    ```
 

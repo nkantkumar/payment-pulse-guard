@@ -1,0 +1,46 @@
+package io.github.paymentpulseguard.rules;
+
+import io.github.paymentpulseguard.domain.EnrichedTransaction;
+import io.github.paymentpulseguard.domain.RuleResult;
+
+global RuleResult result;
+
+// High-Value Transaction (AML)
+rule "High Value Transaction"
+    when
+        $tx: EnrichedTransaction(amount != null && amount.doubleValue() > 10000)
+    then
+        result.addViolation("HIGH_VALUE", "Transaction amount exceeds $10,000");
+end
+
+// Sanctioned Country (AML)
+rule "Sanctioned Country"
+    when
+        $tx: EnrichedTransaction(beneficiaryCountry in ("IR", "KP", "SY", "CU"))
+    then
+        result.addViolation("SANCTIONS", "Transaction to sanctioned country: " + $tx.getBeneficiaryCountry());
+end
+
+// High Transaction Velocity (Fraud)
+rule "High Transaction Velocity"
+    when
+        $tx: EnrichedTransaction(transactionCount24h > 10)
+    then
+        result.addViolation("HIGH_VELOCITY", "High transaction velocity: " + $tx.getTransactionCount24h() + " in 24h");
+end
+
+// Unusual Hours (Fraud)
+rule "Unusual Hours"
+    when
+        $tx: EnrichedTransaction(timestamp != null && (timestamp.atZone(java.time.ZoneId.of("UTC")).getHour() < 6 || timestamp.atZone(java.time.ZoneId.of("UTC")).getHour() > 22))
+    then
+        result.addViolation("UNUSUAL_HOURS", "Transaction at unusual time");
+end
+
+// Amount Exceeds 30-Day Average (Fraud)
+rule "Amount Exceeds Average"
+    when
+        $tx: EnrichedTransaction(amount != null && avgAmount30d != null && avgAmount30d.doubleValue() > 0 && amount.doubleValue() > (avgAmount30d.doubleValue() * 5))
+    then
+        result.addViolation("AMOUNT_DEVIATION", "Transaction amount significantly exceeds 30-day average");
+end

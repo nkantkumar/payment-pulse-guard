@@ -23,6 +23,7 @@
         <lombok.version>1.18.40</lombok.version>
         <kafka.version>3.7.0</kafka.version>
         <drools.version>8.44.0.Final</drools.version>
+        <kie.version>7.74.1.Final</kie.version>
         <spring-cloud.version>2024.0.0</spring-cloud.version>
     </properties>
 
@@ -59,6 +60,24 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <repositories>
+        <repository>
+            <id>jboss-public-repository-group</id>
+            <name>JBoss Public Repository Group</name>
+            <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <build>
     <plugins>
     <plugin>
