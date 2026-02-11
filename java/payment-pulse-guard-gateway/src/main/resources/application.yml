@@ -11,18 +11,38 @@ spring:
           uri: lb://transaction-service
           predicates:
             - Path=/api/transactions/**
+          filters:
+            - StripPrefix=1
         - id: customer-service
           uri: lb://customer-service
           predicates:
             - Path=/api/customers/**
+          filters:
+            - StripPrefix=1
         - id: alert-service
           uri: lb://alert-service
           predicates:
             - Path=/api/alerts/**
+          filters:
+            - StripPrefix=1
         - id: case-service
           uri: lb://case-service
           predicates:
             - Path=/api/cases/**
+          filters:
+            - StripPrefix=1
+    discovery:
+      client:
+        simple:
+          instances:
+            transaction-service:
+              - uri: http://127.0.0.1:8081
+            customer-service:
+              - uri: http://127.0.0.1:8082
+            alert-service:
+              - uri: http://127.0.0.1:8083
+            case-service:
+              - uri: http://127.0.0.1:8084
 
 management:
   endpoints:
